@@ -187,4 +187,12 @@ public class Buffer {
       blk = contents.append(filename);
       pins = 0;
    }
+   
+   @Override
+	public String toString() {
+	   if(blk!=null)
+		return blk.toString();
+	   else
+		   return super.toString();
+	}
 }

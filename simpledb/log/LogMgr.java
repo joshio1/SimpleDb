@@ -68,7 +68,7 @@ public class LogMgr implements Iterable<BasicLogRecord> {
     * which will be returned in reverse order starting with the most recent.
     * @see java.lang.Iterable#iterator()
     */
-   public synchronized Iterator<BasicLogRecord> iterator() {
+   public synchronized ForwardIterator<BasicLogRecord> iterator() {
       flush();
       return new LogIterator(currentblk);
    }
@@ -83,20 +83,27 @@ public class LogMgr implements Iterable<BasicLogRecord> {
     * @return the LSN of the final value
     */
    public synchronized int append(Object[] rec) {
-      int recsize = INT_SIZE;  // 4 bytes for the integer that points to the previous log record
+//      int recsize = INT_SIZE;  // 4 bytes for the integer that points to the previous log record
+      int recsize = INT_SIZE*2;  // 8 bytes for the integer that points to the previous log record and the size
       for (Object obj : rec)
          recsize += size(obj);
       if (currentpos + recsize >= BLOCK_SIZE){ // the log record doesn't fit,
          flush();        // so move to the next block.
          appendNewBlock();
       }
+      initializeRecord(recsize);
       for (Object obj : rec)
          appendVal(obj);
       finalizeRecord();
       return currentLSN();
    }
 
-   /**
+   private void initializeRecord(int recsize) {
+	   	mypage.setInt(currentpos, recsize);
+		currentpos += INT_SIZE;
+   }
+
+/**
     * Adds the specified value to the page at the position denoted by
     * currentpos.  Then increments currentpos by the size of the value.
     * @param val the integer or string to be added to the page

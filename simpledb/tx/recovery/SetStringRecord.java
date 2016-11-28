@@ -17,12 +17,12 @@ class SetStringRecord implements LogRecord {
     * @param offset the offset of the value in the block
     * @param val the new value
     */
-   public SetStringRecord(int txnum, Block blk, int offset, String val, String oldVal) {
+   public SetStringRecord(int txnum, Block blk, int offset, String oldVal, String val) {
       this.txnum = txnum;
       this.blk = blk;
       this.offset = offset;
-      this.val = val;
       this.oldVal = oldVal;
+      this.val = val;
    }
    
    /**
@@ -73,6 +73,20 @@ class SetStringRecord implements LogRecord {
     * @see simpledb.tx.recovery.LogRecord#undo(int)
     */
    public void undo(int txnum) {
+      BufferMgr buffMgr = SimpleDB.bufferMgr();
+      Buffer buff = buffMgr.pin(blk);
+      buff.setString(offset, oldVal , txnum, -1);
+      buffMgr.unpin(buff);
+   }
+   
+   /**
+    * Replaces the specified data value with the value saved in the log record.
+    * The method pins a buffer to the specified block,
+    * calls setInt to restore the saved value
+    * (using a dummy LSN), and unpins the buffer.
+    * @see simpledb.tx.recovery.LogRecord#undo(int)
+    */
+   public void redo(int txnum) {
       BufferMgr buffMgr = SimpleDB.bufferMgr();
       Buffer buff = buffMgr.pin(blk);
       buff.setString(offset, val, txnum, -1);

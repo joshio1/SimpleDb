@@ -36,10 +36,14 @@ public class SimpleDbServerTestRecovery {
 //		
 //		LogRecordIterator it = new LogRecordIterator();
 //		System.out.println("Backward");
-//		while(it.hasNext())
+////		while(it.hasNext())
 //		System.out.println(it.next());
-//		System.out.println("Forward");
-//		while(it.hasNextForward())
+//		System.out.println(it.next());
+//		System.out.println(it.next());
+////		System.out.println("Forward");
+////		while(it.hasNextForward())
+//		System.out.println(it.nextForward());
+//		System.out.println(it.nextForward());
 //		System.out.println(it.nextForward());
 	
 		BufferMgr basicBufferMgr = new SimpleDB().bufferMgr();
@@ -48,8 +52,8 @@ public class SimpleDbServerTestRecovery {
 		RecoveryMgr rm = new RecoveryMgr(12);
 		Block blk0 = new Block("filename",2);
 		Buffer blk0buffer = basicBufferMgr.pin(blk0);
-		int lsn = rm.setInt(blk0buffer, 4, 10);
-		blk0buffer.setInt(4, 10, 12, lsn);
+		int lsn = rm.setInt(blk0buffer, 4, 15);
+		blk0buffer.setInt(4, 15, 12, lsn);
 		rm.commit();
 		}
 		
@@ -58,7 +62,7 @@ public class SimpleDbServerTestRecovery {
 		RecoveryMgr rm1 = new RecoveryMgr(23);
 		Block blk1 = new Block("filename",2);
 		Buffer blk1buffer = basicBufferMgr.pin(blk1);
-		int lsn1 = rm1.setString(blk1buffer, 4, "World");
+		int lsn1 = rm1.setString(blk1buffer, 4, "Hello");
 		blk1buffer.setString(4, "World", 23, lsn1);
 		rm1.recover();
 		}

@@ -15,7 +15,6 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
    private Block blk;
    private Page pg = new Page();
    private int currentrec;
-   private int currentRecForward;
    
    /**
     * Creates an iterator for the records in the log file,
@@ -27,7 +26,6 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
       this.blk = blk;
       pg.read(blk);
       currentrec = pg.getInt(LogMgr.LAST_POS);
-      currentRecForward = INT_SIZE; //Since at position 0, currentrec is stored for that block.
    }
    
    /**
@@ -45,7 +43,7 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
     * @return true if there is an earlier record
     */
    public boolean hasNextForward() {
-      return currentRecForward<LogMgr.currentpos && blk.number()<=LogMgr.currentblk.number();
+      return currentrec+INT_SIZE<LogMgr.currentpos && blk.number()<=LogMgr.currentblk.number();
    }
    
    /**
@@ -71,13 +69,12 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
     * @return the next earliest log record
     */
    public BasicLogRecord nextForward() {
-      if (currentRecForward >= Page.BLOCK_SIZE) 
+      if (currentrec >= Page.BLOCK_SIZE) 
          moveToNextForwardBlock();
 //      currentrec = pg.getInt(currentrec);
-      BasicLogRecord lr = new BasicLogRecord(pg, currentRecForward+INT_SIZE);
-      int recsize = pg.getInt(currentRecForward);
-      pg.getInt(currentRecForward+INT_SIZE);
-      currentRecForward += recsize;
+      BasicLogRecord lr = new BasicLogRecord(pg, currentrec+INT_SIZE+INT_SIZE);
+      int recsize = pg.getInt(currentrec+INT_SIZE);
+      currentrec += recsize;
       return lr;
    }
    

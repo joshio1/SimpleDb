@@ -52,4 +52,8 @@ class CheckpointRecord implements LogRecord {
    public String toString() {
       return "<CHECKPOINT>";
    }
+
+	@Override
+	public void redo(int txnum) {	
+	}
 }

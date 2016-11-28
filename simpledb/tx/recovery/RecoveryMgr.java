@@ -2,6 +2,7 @@ package simpledb.tx.recovery;
 
 import static simpledb.tx.recovery.LogRecord.*;
 import simpledb.file.Block;
+import simpledb.log.ForwardIterator;
 import simpledb.buffer.Buffer;
 import simpledb.server.SimpleDB;
 import java.util.*;
@@ -116,11 +117,14 @@ public class RecoveryMgr {
     */
    private void doRecover() {
       Collection<Integer> finishedTxs = new ArrayList<Integer>();
-      Iterator<LogRecord> iter = new LogRecordIterator();
+      ForwardIterator<LogRecord> iter = new LogRecordIterator();
       while (iter.hasNext()) {
          LogRecord rec = iter.next();
-         if (rec.op() == CHECKPOINT)
-            return;
+         System.out.println(rec);
+         if (rec.op() == CHECKPOINT){
+        	 redo(iter,finishedTxs);
+        	 return;
+         }
          if (rec.op() == COMMIT || rec.op() == ROLLBACK)
             finishedTxs.add(rec.txNumber());
          else if (!finishedTxs.contains(rec.txNumber()))
@@ -128,7 +132,15 @@ public class RecoveryMgr {
       }
    }
    
-   private void redo(){
+   private void redo(ForwardIterator<LogRecord> iter,Collection<Integer> finishedTxs){
+	   System.out.println("REDO");
+	   while(iter.hasNextForward())	{
+		   LogRecord rec = iter.nextForward();
+	         System.out.println(rec);
+	         if (rec.op() == SETINT || rec.op() == SETSTRING)
+	        	 if (!finishedTxs.contains(rec.txNumber()))
+	        		 rec.redo(txnum);
+	   }
 	   return;
    }
 

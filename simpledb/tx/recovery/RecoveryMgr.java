@@ -48,9 +48,9 @@ public class RecoveryMgr {
    public void recover() {
       doRecover();
       SimpleDB.bufferMgr().flushAll(txnum);
+      
       int lsn = new CheckpointRecord().writeToLog();
       SimpleDB.logMgr().flush(lsn);
-
    }
 
    /**
@@ -126,6 +126,10 @@ public class RecoveryMgr {
          else if (!finishedTxs.contains(rec.txNumber()))
             rec.undo(txnum);
       }
+   }
+   
+   private void redo(){
+	   return;
    }
 
    /**

@@ -21,6 +21,10 @@ public class LogRecordIterator implements Iterator<LogRecord> {
       return iter.hasNext();
    }
    
+   public boolean hasNextForward() {
+	      return iter.hasNextForward();
+	   }
+   
    /**
     * Constructs a log record from the values in the 
     * current basic log record.

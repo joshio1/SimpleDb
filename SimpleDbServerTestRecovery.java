@@ -34,23 +34,35 @@ public class SimpleDbServerTestRecovery {
 //		
 //		rm.commit();
 //		
-		LogRecordIterator it = new LogRecordIterator();
+//		LogRecordIterator it = new LogRecordIterator();
+//		System.out.println("Backward");
 //		while(it.hasNext())
 //		System.out.println(it.next());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-		System.out.println(it.nextForward());
-//		Block blk1 = new Block("filename",1);
-//		BufferMgr basicBufferMgr = new SimpleDB().bufferMgr();
+//		System.out.println("Forward");
+//		while(it.hasNextForward())
+//		System.out.println(it.nextForward());
+	
+		BufferMgr basicBufferMgr = new SimpleDB().bufferMgr();
+		{
+		//Txn12
+		RecoveryMgr rm = new RecoveryMgr(12);
+		Block blk0 = new Block("filename",2);
+		Buffer blk0buffer = basicBufferMgr.pin(blk0);
+		int lsn = rm.setInt(blk0buffer, 4, 10);
+		blk0buffer.setInt(4, 10, 12, lsn);
+		rm.commit();
+		}
+		
+		{
+		//Txn23
+		RecoveryMgr rm1 = new RecoveryMgr(23);
+		Block blk1 = new Block("filename",2);
+		Buffer blk1buffer = basicBufferMgr.pin(blk1);
+		int lsn1 = rm1.setString(blk1buffer, 4, "World");
+		blk1buffer.setString(4, "World", 23, lsn1);
+		rm1.recover();
+		}
+		
 		System.out.println("Done");
 	}
 }

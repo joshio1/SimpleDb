@@ -45,7 +45,7 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
     * @return true if there is an earlier record
     */
    public boolean hasNextForward() {
-      return currentrec<BLOCK_SIZE || blk.number()>0;
+      return currentRecForward<LogMgr.currentpos && blk.number()<=LogMgr.currentblk.number();
    }
    
    /**

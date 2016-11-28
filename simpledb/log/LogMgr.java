@@ -24,8 +24,8 @@ public class LogMgr implements Iterable<BasicLogRecord> {
 
    private String logfile;
    private Page mypage = new Page();
-   private Block currentblk;
-   private int currentpos;
+   public static Block currentblk;
+   public static int currentpos;
 
    /**
     * Creates the manager for the specified log file.

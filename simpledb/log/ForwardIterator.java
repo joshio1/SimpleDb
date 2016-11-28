@@ -6,4 +6,6 @@ public interface ForwardIterator<K> extends Iterator<K>{
 
 	public K nextForward();
 	
+	public boolean hasNextForward();
+	
 }

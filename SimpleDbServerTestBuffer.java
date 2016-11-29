@@ -9,7 +9,7 @@ import simpledb.tx.recovery.RecoveryMgr;
 public class SimpleDbServerTestBuffer {
 	public static void main(String[] args) {
 		SimpleDB.init("simpleDb");
-		Block blk1 = new Block("filename",1);
+		Block blk1 = new Block("newfilenametest",100);
 		Block blk2 = new Block("filename",2);
 		Block blk3 = new Block("filename",3);
 		Block blk4 = new Block("filename",4);

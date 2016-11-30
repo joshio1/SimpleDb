@@ -77,17 +77,19 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
 	 //First 4 bytes contains the last record position for the previous record.
 	 //Second 4 bytes contains the size of the record.
 	   int recsize=0;
-      if (currentrec + INT_SIZE + INT_SIZE >= Page.BLOCK_SIZE) {
+	   int lastPos = pg.getInt(LogMgr.LAST_POS);
+      if (currentrec >= lastPos) {
     	  moveToNextForwardBlock();
-    	  recsize = pg.getInt(currentrec+INT_SIZE);    	  
+//    	  recsize = pg.getInt(currentrec+INT_SIZE);
       }
-      else{
-    	  recsize = pg.getInt(currentrec+INT_SIZE);
-    	  if(recsize<=0){
-    		  moveToNextForwardBlock();
-    		  recsize = pg.getInt(currentrec+INT_SIZE);
-    	  }
-      }
+//      else{
+//    	  recsize = pg.getInt(currentrec+INT_SIZE);
+//    	  if(recsize<=0 || recsize > BLOCK_SIZE){
+//    		  moveToNextForwardBlock();
+//    		  recsize = pg.getInt(currentrec+INT_SIZE);
+//    	  }
+//      }
+      recsize = pg.getInt(currentrec+INT_SIZE);    	  
       BasicLogRecord lr = new BasicLogRecord(pg, currentrec+INT_SIZE+INT_SIZE);
       currentrec += recsize;
       return lr;

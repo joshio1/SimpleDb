@@ -32,11 +32,8 @@ class AdvancedBufferMgr {
     * @param numbuffs the number of buffer slots to allocate
     */
    AdvancedBufferMgr(int numbuffs) {
-//      bufferpool = new Buffer[numbuffs];
-	   	this.maxSize = numbuffs;
+	   	maxSize = numbuffs;
 	   	numAvailable = numbuffs;
-//      for (int i=0; i<numbuffs; i++)
-//         bufferpool[i] = new Buffer();
 	   	bufferList = new FixedSizeQueue<>(numbuffs);
 	    bufferPoolMap = new HashMap<Block, Buffer>();
    }
@@ -46,10 +43,6 @@ class AdvancedBufferMgr {
     * @param txnum the transaction's id number
     */
    synchronized void flushAll(int txnum) {
-//      for (Buffer buff : bufferpool)
-//         if (buff.isModifiedBy(txnum)){
-//        	 buff.flush();
-//         }
 	   for(Map.Entry<Block, Buffer> entry : bufferPoolMap.entrySet()){
 		   if(entry.getValue().isModifiedBy(txnum)){
 			   entry.getValue().flush();
@@ -74,15 +67,14 @@ class AdvancedBufferMgr {
          buff = chooseUnpinnedBuffer();
          if (buff == null)
             return null;
-         //Add block - buffer mapping
          buff.assignToBlock(blk);
+         //Update block - buffer mapping
          updateBufferPoolMap(buff);
       }
       if (!buff.isPinned())
          numAvailable--;
       buff.pin();
-//      System.out.println("Map "+bufferPoolMap);
-//      System.out.println("List "+bufferList);
+      System.out.println("BufferPool Queue : "+bufferList);
       return buff;
    }
    
@@ -93,13 +85,14 @@ class AdvancedBufferMgr {
     * @param buff
     */
 	void updateBufferPoolMap(Buffer buff) {
-		// If buffer is already allocated, remove the entry
+		// If buffer is already allocated to some other block, remove the entry from the map.
 		for (Map.Entry<Block, Buffer> entry : bufferPoolMap.entrySet()) {
 			if (entry.getValue().equals(buff)) {
 				bufferPoolMap.remove(entry.getKey());
 				break;
 			}
 		}
+		//Update the bufferpoolmap with the new block - buffer assignment
 		bufferPoolMap.put(buff.block(), buff);
 	}
    
@@ -131,8 +124,6 @@ class AdvancedBufferMgr {
       buff.unpin();
       if (!buff.isPinned())
          numAvailable++;
-//      System.out.println("Unpin"+buff);
-//      System.out.println(bufferPoolMap);
    }
    
    /**
@@ -143,35 +134,28 @@ class AdvancedBufferMgr {
       return numAvailable;
    }
    
+   /**
+    * This method will return the buffer for the block if it exists and null,otherwise.
+    * @param blk
+    * @return
+    */
    private Buffer findExistingBuffer(Block blk) {
-//	   Fetch using bufferpoolmap
-	   Buffer buffer = bufferPoolMap.get(blk);
-	   if(buffer!=null){
-//		   System.out.println("hit");
-		   return buffer;
-	   }
-	   else{
-		   return null;
-	   }
+	   return bufferPoolMap.get(blk);
    }
    
    private Buffer chooseUnpinnedBuffer() {
-//      for (Buffer buff : bufferpool)
-//         if (!buff.isPinned())
-//         return buff;
-//      return null;
 	   //First fill the buffer
 	   if(bufferList.size()<maxSize){
-//		   System.out.println("Here");
+		   //BufferPool still has space, first fill the BufferPool
 		   Buffer buffer = new Buffer();
-		   bufferList.add(buffer);
+		   bufferList.addLast(buffer); //Add the buffer to the last position in the queue
 		   return buffer;
 	   }
 	   else{
+		   //BufferPool is not empty
 		   for (Buffer buff : bufferList)
-			   if (buff!=null && !buff.isPinned()){
-				   bufferList.remove(buff);
-				   bufferList.add(buff);
+			   if (buff!=null && !buff.isPinned()){ //Choose the first unpinned buffer from the Queue
+				   bufferList.addLast(buff); //Add the buffer to the last position in the queue even if it is already present in the queue
 				   return buff;
 			   }
 	   }

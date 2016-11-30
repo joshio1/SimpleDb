@@ -43,7 +43,12 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
     * @return true if there is an earlier record
     */
    public boolean hasNextForward() {
-      return currentrec+INT_SIZE<LogMgr.currentpos && blk.number()<=LogMgr.currentblk.number();
+	   if(blk.number()<LogMgr.currentblk.number())
+		   return true;
+	   else if((blk.number()==LogMgr.currentblk.number())&&(currentrec+INT_SIZE<LogMgr.currentpos))
+			return true;
+			else
+				return false;
    }
    
    /**
@@ -60,7 +65,6 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
       return new BasicLogRecord(pg, currentrec+INT_SIZE+INT_SIZE);
    }
    
-   
    /**
     * Moves to the next log record in forward order.
     * If the current log record is the earliest in its block,
@@ -69,11 +73,22 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
     * @return the next earliest log record
     */
    public BasicLogRecord nextForward() {
-      if (currentrec >= Page.BLOCK_SIZE) 
-         moveToNextForwardBlock();
-//      currentrec = pg.getInt(currentrec);
+	 //Actual Log Record is at 8 bytes after the current rec.
+	 //First 4 bytes contains the last record position for the previous record.
+	 //Second 4 bytes contains the size of the record.
+	   int recsize=0;
+      if (currentrec + INT_SIZE + INT_SIZE >= Page.BLOCK_SIZE) {
+    	  moveToNextForwardBlock();
+    	  recsize = pg.getInt(currentrec+INT_SIZE);    	  
+      }
+      else{
+    	  recsize = pg.getInt(currentrec+INT_SIZE);
+    	  if(recsize<=0){
+    		  moveToNextForwardBlock();
+    		  recsize = pg.getInt(currentrec+INT_SIZE);
+    	  }
+      }
       BasicLogRecord lr = new BasicLogRecord(pg, currentrec+INT_SIZE+INT_SIZE);
-      int recsize = pg.getInt(currentrec+INT_SIZE);
       currentrec += recsize;
       return lr;
    }
@@ -99,6 +114,6 @@ class LogIterator implements ForwardIterator<BasicLogRecord> {
    private void moveToNextForwardBlock() {
       blk = new Block(blk.fileName(), blk.number()+1);
       pg.read(blk);
-      currentrec = pg.getInt(LogMgr.LAST_POS);
+      currentrec = 0;
    }
 }

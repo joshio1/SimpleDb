@@ -83,14 +83,15 @@ public class LogMgr implements Iterable<BasicLogRecord> {
     * @return the LSN of the final value
     */
    public synchronized int append(Object[] rec) {
-//      int recsize = INT_SIZE;  // 4 bytes for the integer that points to the previous log record
+	  //We now also store the size of the record which is useful for forward iteration
       int recsize = INT_SIZE*2;  // 8 bytes for the integer that points to the previous log record and the size
       for (Object obj : rec)
          recsize += size(obj);
-      if (currentpos + recsize >= BLOCK_SIZE){ // the log record doesn't fit,
+      if (currentpos + recsize + INT_SIZE >= BLOCK_SIZE){ // the log record doesn't fit,
          flush();        // so move to the next block.
          appendNewBlock();
       }
+      //Set the size of the record in the first 4 bytes
       initializeRecord(recsize);
       for (Object obj : rec)
          appendVal(obj);
@@ -98,6 +99,15 @@ public class LogMgr implements Iterable<BasicLogRecord> {
       return currentLSN();
    }
 
+   //Set the last position for the block in the last 4 bytes if the block
+   private void setLastPosInBlock() {
+	   mypage.setInt(BLOCK_SIZE-INT_SIZE, currentpos);   
+   }
+
+/**
+    * This method will store the size of the record in the first 4 bytes of the record.
+    * @param recsize
+    */
    private void initializeRecord(int recsize) {
 	   	mypage.setInt(currentpos, recsize);
 		currentpos += INT_SIZE;

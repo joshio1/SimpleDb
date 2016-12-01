@@ -138,7 +138,7 @@ public class RecoveryMgr {
 		   LogRecord rec = iter.nextForward();
 	         System.out.println(rec);
 	         if (rec.op() == SETINT || rec.op() == SETSTRING)
-	        	 if (!finishedTxs.contains(rec.txNumber()))
+	        	 if (finishedTxs.contains(rec.txNumber()))
 	        		 rec.redo(txnum);
 	   }
 	   return;

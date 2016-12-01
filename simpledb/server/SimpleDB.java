@@ -31,13 +31,6 @@ public class SimpleDB {
    private static LogMgr      logm;
    private static MetadataMgr mdm;
    
-   
-   
-   print(String test)
-   {
-	   if(print)
-		   
-   }
    /**
     * Initializes the system.
     * This method is called during system startup.

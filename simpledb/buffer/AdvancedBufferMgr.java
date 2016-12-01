@@ -61,7 +61,6 @@ class AdvancedBufferMgr {
     * @return the pinned buffer
     */
    synchronized Buffer pin(Block blk) {
-//	  System.out.println("Blk "+blk);
       Buffer buff = findExistingBuffer(blk);
       if (buff == null) {
          buff = chooseUnpinnedBuffer();
@@ -74,6 +73,8 @@ class AdvancedBufferMgr {
       if (!buff.isPinned())
          numAvailable--;
       buff.pin();
+      System.out.println("Pin count of buffer "+bufferList.indexOf(buff)+" is "+buff.getPins());
+      
       System.out.println("BufferPool Queue : "+bufferList);
       return buff;
    }
@@ -113,6 +114,7 @@ class AdvancedBufferMgr {
       updateBufferPoolMap(buff);
       numAvailable--;
       buff.pin();
+      System.out.println("Pin count of buffer "+bufferList.indexOf(buff)+" is "+buff.getPins());
       return buff;
    }
    
@@ -122,7 +124,8 @@ class AdvancedBufferMgr {
     */
    synchronized void unpin(Buffer buff) {
       buff.unpin();
-      if (!buff.isPinned())
+     // System.out.println("Buffer unpinned:"+bufferList.indexOf(buff));
+	  if (!buff.isPinned())
          numAvailable++;
    }
    
@@ -149,16 +152,18 @@ class AdvancedBufferMgr {
 		   //BufferPool still has space, first fill the BufferPool
 		   Buffer buffer = new Buffer();
 		   bufferList.addLast(buffer); //Add the buffer to the last position in the queue
+		   System.out.println("Buffer"+ (bufferList.indexOf(buffer)+1)+" is mapped next");
 		   return buffer;
 	   }
 	   else{
 		   //BufferPool is not empty
 		   for (Buffer buff : bufferList)
 			   if (buff!=null && !buff.isPinned()){ //Choose the first unpinned buffer from the Queue
+				   System.out.println("Buffer mapped to the block"+buff+" is replaced next");
 				   bufferList.addLast(buff); //Add the buffer to the last position in the queue even if it is already present in the queue
 				   return buff;
 			   }
 	   }
-      return null;
+	  return null;
    }
 }

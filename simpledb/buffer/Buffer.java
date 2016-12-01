@@ -131,8 +131,12 @@ public class Buffer {
     */
    void pin() {
       pins++;
+     
    }
-
+   int getPins()
+   {
+	   return pins;
+   }
    /**
     * Decreases the buffer's pin count.
     */

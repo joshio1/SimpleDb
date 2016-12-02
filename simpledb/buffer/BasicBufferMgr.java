@@ -1,8 +1,5 @@
 package simpledb.buffer;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import simpledb.file.*;
 
 /**
@@ -11,9 +8,7 @@ import simpledb.file.*;
  *
  */
 class BasicBufferMgr {
-	// linked hash map
-   private Map<Block, Buffer> bufferPoolMap;
-	
+   private Buffer[] bufferpool;
    private int numAvailable;
    
    /**
@@ -30,10 +25,10 @@ class BasicBufferMgr {
     * @param numbuffs the number of buffer slots to allocate
     */
    BasicBufferMgr(int numbuffs) {
-      bufferPoolMap = new LinkedHashMap<>();
+      bufferpool = new Buffer[numbuffs];
       numAvailable = numbuffs;
-      //for (int i=0; i<numbuffs; i++)
-         //numbuffs = bufferpoolMap.size();
+      for (int i=0; i<numbuffs; i++)
+         bufferpool[i] = new Buffer();
    }
    
    /**
@@ -41,11 +36,9 @@ class BasicBufferMgr {
     * @param txnum the transaction's id number
     */
    synchronized void flushAll(int txnum) {
-	   for(Map.Entry<Block, Buffer> entry : bufferPoolMap.entrySet()){
-		   Buffer buff = entry.getValue();
+      for (Buffer buff : bufferpool)
          if (buff.isModifiedBy(txnum))
          buff.flush();
-      }
    }
    
    /**
@@ -58,22 +51,17 @@ class BasicBufferMgr {
     * @return the pinned buffer
     */
    synchronized Buffer pin(Block blk) {
-	   Buffer buff = findExistingBuffer(blk);
-	      if (buff == null) {
-//	    	 if(numAvailable==0){
-	    		  buff = chooseUnpinnedBuffer();
-	    		  if (buff == null)
-	    			  return null;
-	    		  if(buff.block()!=null)
-	    			  bufferPoolMap.remove(buff.block());		//remove existing mapping
-	    		  buff.assignToBlock(blk);
-//	    	 }
-	      }
-	      if (!buff.isPinned())
-	         numAvailable--;
-	      bufferPoolMap.put(blk, buff);					//add new mapping
-	      buff.pin();
-	      return buff;
+      Buffer buff = findExistingBuffer(blk);
+      if (buff == null) {
+         buff = chooseUnpinnedBuffer();
+         if (buff == null)
+            return null;
+         buff.assignToBlock(blk);
+      }
+      if (!buff.isPinned())
+         numAvailable--;
+      buff.pin();
+      return buff;
    }
    
    /**
@@ -90,7 +78,6 @@ class BasicBufferMgr {
       if (buff == null)
          return null;
       buff.assignToNew(filename, fmtr);
-      bufferPoolMap.put(buff.block(), buff);						//add new mapping
       numAvailable--;
       buff.pin();
       return buff;
@@ -115,29 +102,18 @@ class BasicBufferMgr {
    }
    
    private Buffer findExistingBuffer(Block blk) {
-	   //refer key of hashmap no need of loop
-	   if(bufferPoolMap.containsKey(blk)) {
-		   Buffer buff = bufferPoolMap.get(blk);
-		   return buff;
-	   }
-	   
-	   return null;
-      /*for (Buffer buff : bufferpool) {
+      for (Buffer buff : bufferpool) {
          Block b = buff.block();
          if (b != null && b.equals(blk))
             return buff;
       }
-      return null;*/
+      return null;
    }
    
    private Buffer chooseUnpinnedBuffer() {
-	   // iterate over keys of linked hash map
-	   	
-	   for(Map.Entry<Block, Buffer> entry : bufferPoolMap.entrySet()){
-		   Buffer buff = entry.getValue();
-		   if (!buff.isPinned())
-			   return buff;
-      }
+      for (Buffer buff : bufferpool)
+         if (!buff.isPinned())
+         return buff;
       return null;
    }
 }

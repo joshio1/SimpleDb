@@ -91,7 +91,7 @@ public class LogMgr implements Iterable<BasicLogRecord> {
          flush();        // so move to the next block.
          appendNewBlock();
       }
-      System.out.println(currentpos+" "+Arrays.toString(rec));
+//      System.out.println(currentpos+" "+Arrays.toString(rec));
       //Set the size of the record in the first 4 bytes
       initializeRecord(recsize);
       for (Object obj : rec)

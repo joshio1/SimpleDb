@@ -120,7 +120,7 @@ public class RecoveryMgr {
       ForwardIterator<LogRecord> iter = new LogRecordIterator();
       while (iter.hasNext()) {
          LogRecord rec = iter.next();
-         System.out.println(rec);
+         System.out.println("Log: "+rec);
          if (rec.op() == CHECKPOINT){
         	 redo(iter,finishedTxs);
         	 return;
@@ -133,10 +133,10 @@ public class RecoveryMgr {
    }
    
    private void redo(ForwardIterator<LogRecord> iter,Collection<Integer> finishedTxs){
-	   System.out.println("REDO");
+	   System.out.println("REDO BEGIN");
 	   while(iter.hasNextForward())	{
 		   LogRecord rec = iter.nextForward();
-	         System.out.println(rec);
+	         System.out.println("Log: "+rec);
 	         if (rec.op() == SETINT || rec.op() == SETSTRING)
 	        	 if (finishedTxs.contains(rec.txNumber()))
 	        		 rec.redo(txnum);
